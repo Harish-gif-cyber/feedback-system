@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback System - v1 (24MIS0031)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="brand">
+                <span class="logo-icon">📝</span>
+                <div>
+                    <h1>Student Feedback System</h1>
+                    <p class="subtitle">VIT DevOps Laboratory Assignment &bull; Roll No: <strong>24MIS0031</strong></p>
+                </div>
+            </div>
+            <div class="version-tag v1-badge">
+                <span class="dot"></span>
+                <strong>Version 1.0</strong>
+                <span class="feature-label">Feature: Submit Feedback</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <section class="card form-card">
+            <div class="card-header">
+                <h2>Enter Feedback</h2>
+                <p>Submit your course and academic feedback using the form below.</p>
+            </div>
+
+            <form id="feedbackForm" class="feedback-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="studentName">Student Full Name <span class="required">*</span></label>
+                        <input type="text" id="studentName" placeholder="e.g. Hariharan V" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regNo">Registration / Roll Number <span class="required">*</span></label>
+                        <input type="text" id="regNo" placeholder="e.g. 24MIS0031" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="course">Course / Subject <span class="required">*</span></label>
+                        <select id="course" required>
+                            <option value="" disabled selected>Select Course</option>
+                            <option value="DevOps & Cloud Computing">DevOps &amp; Cloud Computing</option>
+                            <option value="Software Architecture & Design">Software Architecture &amp; Design</option>
+                            <option value="Containerization & Kubernetes">Containerization &amp; Kubernetes</option>
+                            <option value="Full Stack Web Development">Full Stack Web Development</option>
+                            <option value="CI/CD & Jenkins Automation">CI/CD &amp; Jenkins Automation</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <select id="category" required>
+                            <option value="Course Content">Course Content</option>
+                            <option value="Teaching & Guidance">Teaching &amp; Guidance</option>
+                            <option value="Lab & Infrastructure">Lab &amp; Infrastructure</option>
+                            <option value="Evaluation & Assessment">Evaluation &amp; Assessment</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rating <span class="required">*</span></label>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5" required>
+                        <label for="star5" title="5 Stars">★ 5 - Excellent</label>
+
+                        <input type="radio" id="star4" name="rating" value="4">
+                        <label for="star4" title="4 Stars">★ 4 - Very Good</label>
+
+                        <input type="radio" id="star3" name="rating" value="3">
+                        <label for="star3" title="3 Stars">★ 3 - Good</label>
+
+                        <input type="radio" id="star2" name="rating" value="2">
+                        <label for="star2" title="2 Stars">★ 2 - Fair</label>
+
+                        <input type="radio" id="star1" name="rating" value="1">
+                        <label for="star1" title="1 Star">★ 1 - Poor</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comments">Detailed Feedback / Comments <span class="required">*</span></label>
+                    <textarea id="comments" rows="4" placeholder="Share your experience, suggestions, or issues..." required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span>Submit Feedback</span> &rarr;
+                    </button>
+                    <button type="reset" class="btn btn-secondary">Clear</button>
+                </div>
+            </form>
+
+            <div id="statusAlert" class="alert hidden"></div>
+
+            <div id="recentSubmission" class="submission-receipt hidden">
+                <h3>Receipt of Last Submission:</h3>
+                <div class="receipt-grid" id="receiptContent"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Student Feedback System &bull; Roll Number: <strong>24MIS0031</strong> &bull; Version 1.0 (Submit Feature)</p>
+    </footer>
+
+    <script>
+        const form = document.getElementById('feedbackForm');
+        const alertBox = document.getElementById('statusAlert');
+        const receiptBox = document.getElementById('recentSubmission');
+        const receiptContent = document.getElementById('receiptContent');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const ratingRadio = document.querySelector('input[name="rating"]:checked');
+            if (!ratingRadio) {
+                showAlert('Please select a star rating.', 'error');
+                return;
+            }
+
+            const payload = {
+                studentName: document.getElementById('studentName').value,
+                regNo: document.getElementById('regNo').value,
+                course: document.getElementById('course').value,
+                category: document.getElementById('category').value,
+                rating: ratingRadio.value,
+                comments: document.getElementById('comments').value
+            };
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Submitting...';
+
+            try {
+                const response = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showAlert('Success: Feedback entered and recorded successfully!', 'success');
+                    displayReceipt(result.data);
+                    form.reset();
+                } else {
+                    showAlert(result.message || 'Failed to submit feedback.', 'error');
+                }
+            } catch (err) {
+                showAlert('Error connecting to server. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Submit Feedback</span> &rarr;';
+            }
+        });
+
+        function showAlert(msg, type) {
+            alertBox.className = `alert alert-${type}`;
+            alertBox.innerText = msg;
+            alertBox.classList.remove('hidden');
+        }
+
+        function displayReceipt(item) {
+            receiptBox.classList.remove('hidden');
+            const stars = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
+            receiptContent.innerHTML = `
+                <div><strong>Ref ID:</strong> #${item.id}</div>
+                <div><strong>Student:</strong> ${item.studentName} (${item.regNo})</div>
+                <div><strong>Course:</strong> ${item.course}</div>
+                <div><strong>Category:</strong> ${item.category}</div>
+                <div><strong>Rating:</strong> <span class="stars">${stars}</span> (${item.rating}/5)</div>
+                <div><strong>Time:</strong> ${new Date(item.submittedAt).toLocaleTimeString()}</div>
+                <div class="receipt-full"><strong>Comments:</strong> "${item.comments}"</div>
+            `;
+        }
+    </script>
+</body>
+</html>

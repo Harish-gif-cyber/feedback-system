@@ -1,0 +1,12 @@
+{
+  "name": "feedback-system-v3",
+  "version": "3.0.0",
+  "description": "Feedback System v3 - Submit, View, Filter & Sort (Roll No: 24MIS0031)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

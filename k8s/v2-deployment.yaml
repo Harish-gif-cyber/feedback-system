@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feedback-v2-deployment
+  labels:
+    app: feedback-system
+    version: v2
+    student: roll-24MIS0031
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: feedback-system
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: feedback-system
+        version: v2
+    spec:
+      containers:
+      - name: feedback-app-v2
+        image: 24mis0031/feedback-system:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        - name: VERSION
+          value: "v2"
+        resources:
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: feedback-v2-service
+  labels:
+    app: feedback-system
+    version: v2
+spec:
+  type: NodePort
+  selector:
+    app: feedback-system
+    version: v2
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30002
+    name: http

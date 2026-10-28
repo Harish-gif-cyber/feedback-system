@@ -1,0 +1,12 @@
+{
+  "name": "feedback-system-v1",
+  "version": "1.0.0",
+  "description": "Feedback System v1 - Submit Feedback (Roll No: 24MIS0031)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
